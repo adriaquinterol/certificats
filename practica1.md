@@ -274,4 +274,51 @@ Enter pass phrase for server.key:
 
 1. Primer de tot hem de crear els fitxers necessaris per a generar la imatge:
 
-    - [Dockerfile](./ldaps/Dockerfile) : fitxer de construcció del docker.
+    - [Dockerfile](./ldaps/Dockerfile): Fitxer de construcció de la imatge.
+    - [DB_CONFIG](./ldaps/DB_CONFIG): Fitxer de configuració de la base de dades de ldap.
+    - [edt.org.ldif](./ldaps/edt.org.ldif): Fitxer que conté les organitzacions i usuaris a inserir al servidor ldaps.
+    - [install.sh](./ldaps/install.sh): Script que insereix les dades i fitxers necessaris al servidor ldaps.
+    - [ldap.conf](./ldaps/ldap.conf): Fitxer que defineix la configuració del client ldaps.
+    - [slapd.conf](./ldaps/slapd.conf): Fitxer de configuració del servidor ldap.
+    - [startup.sh](./ldaps/startup.sh): Script que executa el fitxer [install.sh](./ldaps/install.sh) i inicia el servei slapd.
+    - [ca.crt](./ldaps/ca.crt): Certificat de l'entitat certificadora que hem generat anteriorment.
+    - [server.crt](./ldaps/server.crt): Certificat del servidor que hem generat anteriorment.
+    - [server.key](./ldaps/server.key): Clau privada del servidor que hem generat anteriorment.
+
+2. Una vegada ja tenim els fitxers, generem la imatge des del mateix directori:
+
+```
+$ docker build -t adriaquintero61/ldapserver19:ldaps .
+Sending build context to Docker daemon 23.04 kB
+Step 1/10 : FROM fedora:27
+ ---> f89698585456
+...
+Step 10/10 : CMD /opt/docker/startup.sh
+ ---> Running in da33487e8a1f
+ ---> a309cbfebd33
+Removing intermediate container da33487e8a1f
+Successfully built a309cbfebd33
+```
+
+3. Iniciem el servidor ldaps en detach:
+
+```
+$ docker run --rm -h ldap.edt.org --name ldap.edt.org -d adriaquintero61/ldapserver19:ldaps
+15075ef3301d925750e5ed5704dbc875d9697594c9f1fa1953b65cf7e032fe01
+```
+
+- Realitzem les 3 proves per les quals podría estar fallant la connexió amb els certificats:
+```
+[root@ldap docker]# ldapsearch -x -LLL -Z -b 'dc=edt,dc=org' -h 172.17.0.2 dn
+ldap_start_tls: Connect error (-11)
+	additional info: TLS error -12227:SSL peer was unable to negotiate an acceptable set of security parameters.
+ldap_result: Can't contact LDAP server (-1)
+[root@ldap docker]# ldapsearch -vx -LLL -Z -b 'dc=edt,dc=org' -h 172.17.0.2 dn
+ldap_initialize( ldap://172.17.0.2 )
+ldap_start_tls: Connect error (-11)
+	additional info: TLS error -12227:SSL peer was unable to negotiate an acceptable set of security parameters.
+ldap_result: Can't contact LDAP server (-1)
+[root@ldap docker]# ldapsearch -x -LLL -ZZ -b 'dc=edt,dc=org' -h ldap.edt.org dn | head -n2
+ldap_start_tls: Connect error (-11)
+	additional info: TLS error -12227:SSL peer was unable to negotiate an acceptable set of security parameters.
+```

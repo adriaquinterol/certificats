@@ -1,8 +1,7 @@
-# ldapserver19:base
-## ASIX M06-ASO @edt Curs 2019-2020
+# ssl:ldaps
+## ASIX M11 @edt Curs 2019-2020
 
-Servidor multi ldap, amb organització dc=edt,dc=org, 
-i també dc=em06,dc=cat
+Servidor ldaps, amb organització dc=edt,dc=org.
 
 
 
