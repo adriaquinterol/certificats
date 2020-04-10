@@ -300,26 +300,67 @@ Removing intermediate container da33487e8a1f
 Successfully built a309cbfebd33
 ```
 
-3. Iniciem el servidor ldaps en detach:
+3. Iniciem el servidor ldaps en interactiu i una vegada a dins executem el script "startup.sh" per aplicar la configuració i deixar el servei en primer pla:
 
 ```
-$ docker run --rm -h ldap.edt.org --name ldap.edt.org -d adriaquintero61/ldapserver19:ldaps
-15075ef3301d925750e5ed5704dbc875d9697594c9f1fa1953b65cf7e032fe01
+$ docker run --rm -h ldap.edt.org --name ldap.edt.org --net mynet -it adriaquintero61/ldapserver19:ldaps /bin/bash
+[root@ldap docker]# bash startup.sh 
+5e90da91 mdb_db_open: database "dc=edt,dc=org" cannot be opened: No such file or directory (2). Restore from backup!
+5e90da91 backend_startup_one (type=mdb, suffix="dc=edt,dc=org"): bi_db_open failed! (2)
+slap_startup failed (test would succeed using the -u switch)
+_#################### 100.00% eta   none elapsed            none fast!         
+Closing DB...
+
+
 ```
 
-**Errors:**
-- Realitzem les 3 proves per les quals podría estar fallant la connexió amb els certificats:
+4. Després necessitarem el client ldap per conectar-nos. Podem fer servir la mateixa imatge, però indicant-li un nom diferent al contenidor:
+
 ```
-1. [root@ldap docker]# ldapsearch -x -LLL -Z -b 'dc=edt,dc=org' -h 172.17.0.2 dn
-ldap_start_tls: Connect error (-11)
-	additional info: TLS error -12227:SSL peer was unable to negotiate an acceptable set of security parameters.
-ldap_result: Can't contact LDAP server (-1)
-2. [root@ldap docker]# ldapsearch -vx -LLL -Z -b 'dc=edt,dc=org' -h 172.17.0.2 dn
-ldap_initialize( ldap://172.17.0.2 )
-ldap_start_tls: Connect error (-11)
-	additional info: TLS error -12227:SSL peer was unable to negotiate an acceptable set of security parameters.
-ldap_result: Can't contact LDAP server (-1)
-3. [root@ldap docker]# ldapsearch -x -LLL -ZZ -b 'dc=edt,dc=org' -h ldap.edt.org dn | head -n2
-ldap_start_tls: Connect error (-11)
-	additional info: TLS error -12227:SSL peer was unable to negotiate an acceptable set of security parameters.
+$ docker run --rm -h client.edt.org --name client.edt.org --net mynet -it adriaquintero61/ldapserver19:ldaps /bin/bash
+[root@client docker]# 
 ```
+
+5. Una vegada iniciada executem el script "install.sh" per tal d'aplicar la configuració de ldap (tant de client com de servidor, encara que només necessitem el client). Una vegada aplicada hem d'anar al fitxer "/etc/hosts" i definir el host "ldap.edt.org" a la ip que li pertoqui (172.19.0.2 en aquest cas):
+
+```
+# bash install.sh 
+5e90dc39 mdb_db_open: database "dc=edt,dc=org" cannot be opened: No such file or directory (2). Restore from backup!
+5e90dc39 backend_startup_one (type=mdb, suffix="dc=edt,dc=org"): bi_db_open failed! (2)
+slap_startup failed (test would succeed using the -u switch)
+_#################### 100.00% eta   none elapsed            none fast!         
+Closing DB...
+[root@client docker]# tail -n1 /etc/hosts
+172.19.0.2	ldap.edt.org
+```
+
+
+6. Un cop fets els anteriors pasos ja podem realitzar les comandes ldap:
+
+    - Connexió amb ldaps:
+
+
+    - Connexió amb startTLS:
+
+    ```
+    Client: [root@client docker]# ldapsearch -LLL -x -Z -H ldap://ldap.edt.org -b 'dc=edt,dc=org' 'cn=anna*' (la primera vegada que realitzem una connexió amb un client nou, a la pantalla del servidor demanarà que introduïm la contrasenya de la clau privada del servidor)
+
+    Servidor: Please enter pin, password, or pass phrase for security token 'PEM Token #1': serverkey
+
+    Client: [root@client docker]# ldapsearch -LLL -x -Z -H ldap://ldap.edt.org -b 'dc=edt,dc=org' 'cn=anna*'
+    dn: uid=anna,ou=usuaris,dc=edt,dc=org
+    objectClass: posixAccount
+    objectClass: inetOrgPerson
+    cn: Anna Pou
+    cn: Anita Pou
+    sn: Pou
+    homePhone: 555-222-2222
+    mail: anna@edt.org
+    description: Watch out for this girl
+    ou: Alumnes
+    uid: anna
+    uidNumber: 5002
+    gidNumber: 600
+    homeDirectory: /tmp/home/anna
+    userPassword:: e1NTSEF9Qm00QjNCdS9mdUg2QmJ5OWxneGZGQXdMWXJLMFJiT3E=
+    ```
