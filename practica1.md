@@ -307,18 +307,19 @@ $ docker run --rm -h ldap.edt.org --name ldap.edt.org -d adriaquintero61/ldapser
 15075ef3301d925750e5ed5704dbc875d9697594c9f1fa1953b65cf7e032fe01
 ```
 
+**Errors:**
 - Realitzem les 3 proves per les quals podría estar fallant la connexió amb els certificats:
 ```
-[root@ldap docker]# ldapsearch -x -LLL -Z -b 'dc=edt,dc=org' -h 172.17.0.2 dn
+1. [root@ldap docker]# ldapsearch -x -LLL -Z -b 'dc=edt,dc=org' -h 172.17.0.2 dn
 ldap_start_tls: Connect error (-11)
 	additional info: TLS error -12227:SSL peer was unable to negotiate an acceptable set of security parameters.
 ldap_result: Can't contact LDAP server (-1)
-[root@ldap docker]# ldapsearch -vx -LLL -Z -b 'dc=edt,dc=org' -h 172.17.0.2 dn
+2. [root@ldap docker]# ldapsearch -vx -LLL -Z -b 'dc=edt,dc=org' -h 172.17.0.2 dn
 ldap_initialize( ldap://172.17.0.2 )
 ldap_start_tls: Connect error (-11)
 	additional info: TLS error -12227:SSL peer was unable to negotiate an acceptable set of security parameters.
 ldap_result: Can't contact LDAP server (-1)
-[root@ldap docker]# ldapsearch -x -LLL -ZZ -b 'dc=edt,dc=org' -h ldap.edt.org dn | head -n2
+3. [root@ldap docker]# ldapsearch -x -LLL -ZZ -b 'dc=edt,dc=org' -h ldap.edt.org dn | head -n2
 ldap_start_tls: Connect error (-11)
 	additional info: TLS error -12227:SSL peer was unable to negotiate an acceptable set of security parameters.
 ```
