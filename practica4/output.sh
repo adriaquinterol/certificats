@@ -1,16 +1,7 @@
 #!/bin/bash
 # ASIX M11-Seguretat i alta disponibilitat
-# @edt 2015
+# Adria Quintero Lazaro
 # ==============================================
-# Exemples de regles OUTPUT
-# host i19 (192.168.2.49)
-# paquets: xinetd, telnet, telnet-server, httpd, uw-imap
-# fets amb xinetd: echo-stream(7), daytime-stream(13),
-# daytime2(82), ipop3(110), imap(143), https2(81)
-# stand-alone: httpd, xinetd
-# ===============================================
-# Activar si el host ha de fer de router
-#echo 1 > /proc/sys/net/ipv4/ip_forward
 #1.Regles Flush: buidar les regles actuals
 iptables -F
 iptables -X
